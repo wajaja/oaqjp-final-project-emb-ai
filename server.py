@@ -1,40 +1,54 @@
-# Import the Flask class from the flask module
-from flask import Flask
-from emotion_detection import emotion_detector
+"""Flask server for emotion detection using Watson NLP API."""
+from flask import Flask, request
+import requests
 
-# Create an instance of the Flask class, passing in the name of the current module
 app = Flask(__name__)
+
+WATSON_URL = "https://sn-watson-emotion.labs.skills.network/v1/watson.runtime.nlp.v1/NlpService/EmotionPredict"
+HEADERS = {
+    "grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock",
+    "Content-Type": "application/json"
+}
+
+def format_emotion_response(emotions):
+    """Format emotion scores into readable text."""
+    dominant = max(emotions.items(), key=lambda x: x[1])[0]
+    return (
+        "For the given statement, the system response is:\n"
+        f"• Anger: {emotions['anger']:.3f}\n"
+        f"• Disgust: {emotions['disgust']:.3f}\n"
+        f"• Fear: {emotions['fear']:.3f}\n"
+        f"• Joy: {emotions['joy']:.3f}\n"
+        f"• Sadness: {emotions['sadness']:.3f}\n"
+        f"\nThe dominant emotion is {dominant}."
+    )
 
 @app.route('/emotionDetector', methods=['GET'])
 def emotion_detector():
-    text_to_analyze = request.args.get('text')
-    if not text_to_analyze:
-        return jsonify({"error": "Please provide text to analyze"}), 400
+    """Analyze text for emotions and return results."""
+    text_to_analyse = request.args.get('text')
+    if not text_to_analyse:
+        return "Error: Please provide text to analyze", 400
     
     try:
-        analysis = emotion_detector(text_to_analyze)
-        emotions = analysis['emotion_predictions'][0]['emotion']
+        payload = {"raw_document": {"text": text_to_analyse}}
+        response = requests.post(WATSON_URL, headers=HEADERS, json=payload, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        # Debug: Print full response
+        print("API Response:", data)
+            
+        emotions = data['emotionPredictions'][0]['emotion']
+        return format_emotion_response(emotions), 200
         
-        # Format the response
-        response = {
-            "anger": emotions['anger'],
-            "disgust": emotions['disgust'],
-            "fear": emotions['fear'],
-            "joy": emotions['joy'],
-            "sadness": emotions['sadness'],
-            "dominant_emotion": max(emotions.items(), key=lambda x: x[1])[0]
-        }
-        
-        return jsonify(response)
-    
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-        
-@app.errorhandler(400)
-def api_not_found(error):
-    # This function is a custom error handler for 404 Not Found errors
-    # It is triggered whenever a 404 error occurs within the Flask application
-    return {"message": "None"}, 400
+    except requests.exceptions.RequestException as err:
+        return f"Error: Failed to connect to emotion service - {str(err)}", 500
+    except (KeyError, IndexError) as err:
+        return f"Error: Malformed API response - {str(err)}", 500
+    except Exception as err:
+        return f"Unexpected error: {str(err)}", 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)
+    
