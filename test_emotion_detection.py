@@ -1,23 +1,26 @@
-# Import the 'unittest' module to create unit tests for your code.
 import unittest
-
 from emotion_detection import emotion_detector
 
-class TestEmotion(unittest.TestCase): 
-   
-    def test1(self): 
-        
-        self.assertEqual(emotion_detector("I am glad this happened"), "joy") 
-        
-        self.assertEqual(emotion_detector("I am really mad about this"), "anger") 
+class TestEmotionDetector(unittest.TestCase):
+    def test_emotion_detector_joy(self):
+        result = emotion_detector("I am glad this happened")
+        self.assertEqual(result['dominant_emotion'], 'joy')
 
-        self.assertEqual(emotion_detector("I feel disgusted just hearing about this"), "") 
-        
-        self.assertEqual(emotion_detector("I am so sad about this"), "disgust") 
+    def test_emotion_detector_anger(self):
+        result = emotion_detector("I am really mad about this")
+        self.assertEqual(result['dominant_emotion'], 'anger')
 
-        self.assertEqual(emotion_detector("I am really afraid that this will happen"), "fear") 
-        
-        #self.assertNotEqual(square(-3), -9)  # test when -3 is given as input the output is not -9.
-      
+    def test_emotion_detector_disgust(self):
+        result = emotion_detector("I feel disgusted just hearing about this")
+        self.assertEqual(result['dominant_emotion'], 'disgust')
 
-unittest.main()
+    def test_emotion_detector_sadness(self):
+        result = emotion_detector("I am so sad about this")
+        self.assertEqual(result['dominant_emotion'], 'sadness')
+
+    def test_emotion_detector_fear(self):
+        result = emotion_detector("I am really afraid that this will happen")
+        self.assertEqual(result['dominant_emotion'], 'fear')
+
+if __name__ == '__main__':
+    unittest.main()
