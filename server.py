@@ -1,5 +1,6 @@
 # Import the Flask class from the flask module
 from flask import Flask
+from emotion_detection import emotion_detector
 
 # Create an instance of the Flask class, passing in the name of the current module
 app = Flask(__name__)
@@ -11,7 +12,7 @@ def emotion_detector():
         return jsonify({"error": "Please provide text to analyze"}), 400
     
     try:
-        analysis = analyze_emotion(text_to_analyze)
+        analysis = emotion_detector(text_to_analyze)
         emotions = analysis['emotion_predictions'][0]['emotion']
         
         # Format the response
