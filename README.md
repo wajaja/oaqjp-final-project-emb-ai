@@ -7,5 +7,5 @@ sys.path.append('/Users/me/projects/myapp')
 
 python3.11
 
-from myapp import calculate_stats
-result = calculate_stats(data)
+from emotion_detection import emotion_detector
+result = emotion_detector("I love this new technology.")
