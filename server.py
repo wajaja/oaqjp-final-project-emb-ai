@@ -4,8 +4,30 @@ from flask import Flask
 # Create an instance of the Flask class, passing in the name of the current module
 app = Flask(__name__)
 
-# Define a route for the root URL ("/")
-@app.route("/")
-def hello_world():
-    # Function that handles requests to the root URL
-    return "Hello, World!"
+@app.route('/emotionDetector', methods=['GET'])
+def emotion_detector():
+    text_to_analyze = request.args.get('text')
+    if not text_to_analyze:
+        return jsonify({"error": "Please provide text to analyze"}), 400
+    
+    try:
+        analysis = analyze_emotion(text_to_analyze)
+        emotions = analysis['emotion_predictions'][0]['emotion']
+        
+        # Format the response
+        response = {
+            "anger": emotions['anger'],
+            "disgust": emotions['disgust'],
+            "fear": emotions['fear'],
+            "joy": emotions['joy'],
+            "sadness": emotions['sadness'],
+            "dominant_emotion": max(emotions.items(), key=lambda x: x[1])[0]
+        }
+        
+        return jsonify(response)
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
