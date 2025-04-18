@@ -3,7 +3,7 @@ from flask import Flask, request
 import requests
 
 app = Flask(__name__)
-
+//
 WATSON_URL = "https://sn-watson-emotion.labs.skills.network/v1/watson.runtime.nlp.v1/NlpService/EmotionPredict"
 HEADERS = {
     "grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock",
